@@ -1,0 +1,5 @@
+for i = 1:60000
+    if labels(i) == 0
+        labelsNEW(
+    end
+end

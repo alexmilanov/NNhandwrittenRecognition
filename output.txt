@@ -1,0 +1,72 @@
+(1)clear all;
+(2)clc;
+(3)
+(4)images = loadMNISTImages('train-images.idx3-ubyte');
+(5)labels = loadMNISTLabels('train-labels.idx1-ubyte');
+(6)
+(7)S1 = 530;
+(8)S2 = 10;
+(9)
+(10)target = full(ind2vec(labels+1));
+(11)[I, Q] = size(images)
+(12)[O, Q] = size(target)
+(13)
+(14)net = newff(minmax(images),[S1 S2], {'logsig','logsig'},'traingd');
+(15)
+(16)IW = (1/sqrt(415520)) .* randn(S1,I);
+(17)b1 = randn(S1,1);
+(18)LW = (1/sqrt(5300)) .* randn(O, S1);
+(19)b2 = randn(O,1);
+(20)net.IW{1,1} = IW;
+(21)net.LW{2,1} = LW;
+(22)net.b{2} = b2;
+(23)net.b{1} = b1;
+(24)
+(25)net.performFcn = 'msereg';
+(26)net.performParam.ratio = 0.5;
+(27)net.trainFcn = 'traingd';
+(28)net.trainParam.goal = 1e-4;
+(29)net.trainParam.show = 1;
+(30)net.trainparam.epochs = 350;
+(31)%net.trainParam.mc = 0.01;
+(32)net.trainParam.lr = 0.1;
+(33)net.trainParam.max_fail = 125;
+(34)bn = 0;
+(35)trn = 0;
+(36)END = 500;
+(37)
+(38)result = 0;
+(39)        add = 0;
+(40)        for x = 1:(END*0.4)
+(41)           if(add == 3)
+(42)               add = 2;
+(43)            elseif(add == 2 || add == 0)
+(44)               add = 3;
+(45)            end
+(46)            result = (result + add);
+(47)            index(x) = result;
+(48)        end
+(49)
+(50)for bn = 1:END:60000
+(51)    trn = bn
+(52)    temp = trn;
+(53)        if(trn > 60000) break;
+(54)        end
+(55)        var = 1;
+(56)        VV.P = images(:, bn+2:5:bn + (END-1));
+(57)        bn = temp;
+(58)        TV.P = images(:, bn+4:5:bn + (END - 1));
+(59)        bn=temp;
+(60)        VV.T = target(:, trn + 2:5:trn + (END-1));
+(61)        trn = temp;
+(62)        TV.T = target(:, trn + 4:5:trn + (END-1));
+(63)        bn = temp;
+(64)        trn = temp;
+(65)        imagesBATCH = images(:, bn:bn + (END - 1));
+(66)        imagesBATCH(:, index) = [];
+(67)        targetBATCH = target(:, trn:trn + (END - 1));
+(68)        trn = temp;
+(69)        targetBATCH(:, index) = [];
+(70)        [net,tr, Y, E] = train(net,imagesBATCH,targetBATCH,[],[],VV,TV);   
+(71)end
+(72)
